@@ -40,11 +40,19 @@ jobs:
           gradle-version: '8.7'
           cache-disabled: true
 
-      - name: Zbuduj plik APK
-        run: gradle assembleDebug
+      - name: Dekoduj klucz Release
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/release.jks
+
+      - name: Zbuduj podpisany plik APK
+        env:
+          KEYSTORE_FILE: ${{ github.workspace }}/app/release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: gradle assembleRelease
 
       - name: Udostepnij gotowy plik APK
         uses: actions/upload-artifact@v4
         with:
-          name: KursRadar-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: KursRadar-Release-APK
+          path: app/build/outputs/apk/release/app-release.apk
