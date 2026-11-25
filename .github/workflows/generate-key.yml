@@ -1,0 +1,27 @@
+name: Generate Keystore
+
+on:
+  workflow_dispatch:
+
+jobs:
+  gen:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate JKS and Base64
+        run: |
+          keytool -genkeypair -v \
+            -keystore scanbolt-release.jks \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -alias "${{ secrets.KEY_ALIAS }}" \
+            -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \
+            -keypass "${{ secrets.KEY_PASSWORD }}" \
+            -dname "CN=ScanBolt, OU=App, O=ScanBolt, L=Krakow, C=PL"
+          base64 -w 0 scanbolt-release.jks > keystore_base64.txt
+
+      - name: Upload Keystore
+        uses: actions/upload-artifact@v4
+        with:
+          name: moj-klucz-scanbolt
+          path: |
+            scanbolt-release.jks
+            keystore_base64.txt
